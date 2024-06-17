@@ -9,73 +9,164 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.boot.test.context.SpringBootTest;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+@SpringBootTest
 public class PVServiceTest {
 
     @Mock
     private PVRepository propertyRepository;
 
     @Mock
-    private GeoapifyService geoapifyService; // Mocking the GeoapifyService
+    private GeoapifyService geoapifyService;
 
     @InjectMocks
-    private PVService propertyService;
+    private PVService pvService;
 
     @BeforeEach
     public void setUp() {
-        MockitoAnnotations.openMocks(this);
+        MockitoAnnotations.initMocks(this);
     }
 
+    // Positive Test Case for addProperty
     @Test
-    public void testAddProperty() {
+    public void testAddProperty_Success() {
         PropertyViewer property = new PropertyViewer();
         property.setBuildingnumber(1);
-        property.setBuildingname("Test Building");
-        property.setStreet("Test Street");
-        property.setPostcode("12345");
-        property.setCity("Test City");
-        property.setCountry("Test Country");
-        property.setDescription("Test Description");
+        property.setBuildingname("BuildingName");
+        property.setStreet("Street");
+        property.setPostcode("Postcode");
+        property.setCity("City");
+        property.setCountry("Country");
+        property.setDescription("Description");
 
-        when(geoapifyService.getCoordinates(any(String.class))).thenReturn(new double[]{1.0, 2.0});
-
+        when(geoapifyService.getCoordinates(anyString())).thenReturn(new double[]{10.0, 20.0});
         when(propertyRepository.save(any(PropertyViewer.class))).thenReturn(property);
 
-        PropertyViewer savedProperty = propertyService.addProperty(property);
+        PropertyViewer result = pvService.addProperty(property);
 
-        verify(propertyRepository, times(1)).save(any(PropertyViewer.class));
-
-        assert savedProperty != null;
-        assert savedProperty.getBuildingnumber() == 1;
-        assert savedProperty.getBuildingname().equals("Test Building");
+        assertNotNull(result);
+        assertEquals(10.0, result.getLatitude());
+        assertEquals(20.0, result.getLongitude());
+        verify(propertyRepository, times(1)).save(property);
     }
 
+    // Negative Test Case for addProperty
     @Test
-    public void testFindById() {
+    public void testAddProperty_GeoapifyServiceFails() {
         PropertyViewer property = new PropertyViewer();
         property.setBuildingnumber(1);
-        property.setBuildingname("Test Building");
-        property.setStreet("Test Street");
-        property.setPostcode("12345");
-        property.setCity("Test City");
-        property.setCountry("Test Country");
-        property.setDescription("Test Description");
+        property.setBuildingname("BuildingName");
+        property.setStreet("Street");
+        property.setPostcode("Postcode");
+        property.setCity("City");
+        property.setCountry("Country");
+        property.setDescription("Description");
 
-        when(propertyRepository.findById(1)).thenReturn(java.util.Optional.of(property));
-        when(propertyRepository.findById(2)).thenReturn(java.util.Optional.empty());
+        when(geoapifyService.getCoordinates(anyString())).thenThrow(new RuntimeException("Failed to get coordinates"));
 
-        PropertyViewer foundProperty = propertyService.findById(1);
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            pvService.addProperty(property);
+        });
+
+        assertEquals("Failed to get coordinates", exception.getMessage());
+        verify(propertyRepository, never()).save(any(PropertyViewer.class));
+    }
+
+    // Positive Test Case for findById
+    @Test
+    public void testFindById_Success() {
+        PropertyViewer property = new PropertyViewer();
+        property.setBuildingnumber(1);
+
+        when(propertyRepository.findById(1)).thenReturn(Optional.of(property));
+
+        PropertyViewer result = pvService.findById(1);
+
+        assertNotNull(result);
+        assertEquals(1, result.getBuildingnumber());
+        verify(propertyRepository, times(1)).findById(1);
+    }
+
+    // Negative Test Case for findById
+    @Test
+    public void testFindById_PropertyNotFound() {
+        when(propertyRepository.findById(1)).thenReturn(Optional.empty());
+
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            pvService.findById(1);
+        });
+
+        assertEquals("Property not found", exception.getMessage());
+        verify(propertyRepository, times(1)).findById(1);
+    }
+
+    // Positive Test Case for findAll
+    @Test
+    public void testFindAll_Success() {
+        PropertyViewer property1 = new PropertyViewer();
+        PropertyViewer property2 = new PropertyViewer();
+
+        when(propertyRepository.findAll()).thenReturn(Arrays.asList(property1, property2));
+
+        List<PropertyViewer> result = pvService.findAll();
+
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        verify(propertyRepository, times(1)).findAll();
+    }
+
+    // Negative Test Case for updateProperty
+    @Test
+    public void testUpdateProperty_PropertyNotFound() {
+        PropertyViewer property = new PropertyViewer();
+        property.setBuildingnumber(1);
+
+        when(propertyRepository.findById(1)).thenReturn(Optional.empty());
+
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            pvService.updateProperty(property);
+        });
+
+        assertEquals("Property not found", exception.getMessage());
+        verify(propertyRepository, times(1)).findById(1);
+        verify(propertyRepository, never()).save(any(PropertyViewer.class));
+    }
+
+    // Positive Test Case for deleteProperty
+    @Test
+    public void testDeleteProperty_Success() {
+        PropertyViewer property = new PropertyViewer();
+        property.setBuildingnumber(1);
+
+        when(propertyRepository.findById(1)).thenReturn(Optional.of(property));
+        doNothing().when(propertyRepository).delete(property);
+
+        pvService.deleteProperty(1);
 
         verify(propertyRepository, times(1)).findById(1);
+        verify(propertyRepository, times(1)).delete(property);
+    }
 
-        assert foundProperty != null;
-        assert foundProperty.getBuildingnumber() == 1;
-        assert foundProperty.getBuildingname().equals("Test Building");
+    // Negative Test Case for deleteProperty
+    @Test
+    public void testDeleteProperty_PropertyNotFound() {
+        when(propertyRepository.findById(1)).thenReturn(Optional.empty());
 
-        assertThrows(RuntimeException.class, () -> propertyService.findById(2));
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            pvService.deleteProperty(1);
+        });
+
+        assertEquals("Property not found", exception.getMessage());
+        verify(propertyRepository, times(1)).findById(1);
+        verify(propertyRepository, never()).delete(any(PropertyViewer.class));
     }
 }

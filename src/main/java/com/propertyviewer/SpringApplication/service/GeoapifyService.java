@@ -35,7 +35,7 @@ public class GeoapifyService {
         throw new RuntimeException("Failed to get coordinates");
     }
 
-    private static class GeoapifyResponse {
+     public static class GeoapifyResponse {
         private List<Feature> features;
 
         public List<Feature> getFeatures() {
@@ -46,7 +46,7 @@ public class GeoapifyService {
             this.features = features;
         }
 
-        private static class Feature {
+         public static class Feature {
             private Properties properties;
 
             public Properties getProperties() {
@@ -58,7 +58,7 @@ public class GeoapifyService {
             }
         }
 
-        private static class Properties {
+         public static class Properties {
             private double lat;
             private double lon;
 
