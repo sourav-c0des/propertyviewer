@@ -12,6 +12,15 @@ import jakarta.persistence.Table;
 public class PropertyViewer {
 
 
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+
     private int id;
     @Id
     private int buildingnumber;

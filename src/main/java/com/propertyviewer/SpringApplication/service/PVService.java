@@ -1,9 +1,9 @@
 package com.propertyviewer.SpringApplication.service;
 
 import com.propertyviewer.SpringApplication.entity.PropertyViewer;
+import com.propertyviewer.SpringApplication.repository.PVRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.propertyviewer.SpringApplication.repository.PVRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,10 +18,14 @@ public class PVService {
     private GeoapifyService geoapifyService;
 
     public PropertyViewer addProperty(PropertyViewer property) {
-        String address = property.getStreet() + ", " + property.getCity() + ", " + property.getCountry();
+        String address = property.getBuildingnumber() + ", " + property.getBuildingname() + ", " +
+                property.getStreet() + ", " + property.getPostcode() + ", " +
+                property.getCity() + ", " + property.getCountry();
+
         double[] coords = geoapifyService.getCoordinates(address);
         property.setLatitude(coords[0]);
         property.setLongitude(coords[1]);
+
         return propertyRepository.save(property);
     }
 
@@ -29,49 +33,51 @@ public class PVService {
         Optional<PropertyViewer> property = propertyRepository.findById(buildingnumber);
 
         if (property.isEmpty()) {
-            throw new RuntimeException("Not found");
+            throw new RuntimeException("Property not found");
         }
 
         return property.get();
     }
-
 
     public List<PropertyViewer> findAll() {
         return propertyRepository.findAll();
     }
 
     public PropertyViewer updateProperty(PropertyViewer property) {
-        Optional<PropertyViewer> dbuser = propertyRepository.findById(property.getBuildingnumber());
+        Optional<PropertyViewer> dbProperty = propertyRepository.findById(property.getBuildingnumber());
 
-        if (dbuser.isEmpty()) {
-            throw new RuntimeException("Not found");
+        if (dbProperty.isEmpty()) {
+            throw new RuntimeException("Property not found");
         }
 
-        PropertyViewer existingUser = dbuser.get();
-        existingUser.setBuildingname(property.getBuildingname());
-        existingUser.setStreet(property.getStreet());
-        existingUser.setPostcode(property.getPostcode());
-        existingUser.setCity(property.getCity());
-        existingUser.setCountry(property.getCountry());
-        existingUser.setDescription(property.getDescription());
+        PropertyViewer existingProperty = dbProperty.get();
+        existingProperty.setBuildingname(property.getBuildingname());
+        existingProperty.setStreet(property.getStreet());
+        existingProperty.setPostcode(property.getPostcode());
+        existingProperty.setCity(property.getCity());
+        existingProperty.setCountry(property.getCountry());
+        existingProperty.setDescription(property.getDescription());
 
-        String address = property.getPostcode();
-        double[] coords = geoapifyService.getCoordinates(address);
-        existingUser.setLatitude(coords[0]);
-        existingUser.setLongitude(coords[1]);
+        double[] coords = geoapifyService.getCoordinates(existingProperty.getBuildingnumber() + ", " +
+                existingProperty.getBuildingname() + ", " +
+                existingProperty.getStreet() + ", " +
+                existingProperty.getPostcode() + ", " +
+                existingProperty.getCity() + ", " +
+                existingProperty.getCountry());
 
+        existingProperty.setLatitude(coords[0]);
+        existingProperty.setLongitude(coords[1]);
 
-        return propertyRepository.save(existingUser);
+        return propertyRepository.save(existingProperty);
     }
 
     public void deleteProperty(int buildingnumber) {
-        Optional<PropertyViewer> dbuser = propertyRepository.findById(buildingnumber);
+        Optional<PropertyViewer> property = propertyRepository.findById(buildingnumber);
 
-        if (dbuser.isEmpty()) {
-            throw new RuntimeException("User not found");
+        if (property.isEmpty()) {
+            throw new RuntimeException("Property not found");
         }
 
-        propertyRepository.delete(dbuser.get());
+        propertyRepository.delete(property.get());
     }
-
 }

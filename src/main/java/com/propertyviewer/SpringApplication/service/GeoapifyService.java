@@ -20,15 +20,16 @@ public class GeoapifyService {
     }
 
     public double[] getCoordinates(String address) {
+        String encodedAddress = UriComponentsBuilder.fromUriString(address).toUriString();
         String uri = UriComponentsBuilder.fromHttpUrl("https://api.geoapify.com/v1/geocode/search")
-                .queryParam("text", address)
+                .queryParam("text", encodedAddress)
                 .queryParam("apiKey", apiKey)
                 .toUriString();
 
         GeoapifyResponse response = restTemplate.getForObject(uri, GeoapifyResponse.class);
         if (response != null && !response.getFeatures().isEmpty()) {
-            double lat = response.getFeatures().get(0).getGeometry().getCoordinates().get(1);
-            double lon = response.getFeatures().get(0).getGeometry().getCoordinates().get(0);
+            double lat = response.getFeatures().get(0).getProperties().getLat();
+            double lon = response.getFeatures().get(0).getProperties().getLon();
             return new double[]{lat, lon};
         }
         throw new RuntimeException("Failed to get coordinates");
@@ -36,8 +37,6 @@ public class GeoapifyService {
 
     private static class GeoapifyResponse {
         private List<Feature> features;
-
-        // Getters and setters
 
         public List<Feature> getFeatures() {
             return features;
@@ -48,30 +47,35 @@ public class GeoapifyService {
         }
 
         private static class Feature {
-            private Geometry geometry;
+            private Properties properties;
 
-            // Getters and setters
-
-            public Geometry getGeometry() {
-                return geometry;
+            public Properties getProperties() {
+                return properties;
             }
 
-            public void setGeometry(Geometry geometry) {
-                this.geometry = geometry;
+            public void setProperties(Properties properties) {
+                this.properties = properties;
+            }
+        }
+
+        private static class Properties {
+            private double lat;
+            private double lon;
+
+            public double getLat() {
+                return lat;
             }
 
-            private static class Geometry {
-                private List<Double> coordinates;
+            public void setLat(double lat) {
+                this.lat = lat;
+            }
 
-                // Getters and setters
+            public double getLon() {
+                return lon;
+            }
 
-                public List<Double> getCoordinates() {
-                    return coordinates;
-                }
-
-                public void setCoordinates(List<Double> coordinates) {
-                    this.coordinates = coordinates;
-                }
+            public void setLon(double lon) {
+                this.lon = lon;
             }
         }
     }
