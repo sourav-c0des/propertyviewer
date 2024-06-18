@@ -17,7 +17,9 @@ Clone the repository:
 bash
 Copy code
 git clone https://github.com/sourav-c0des/propertyviewer.git
+
 cd propertyviewer
+
 Run the main java file
 The API will be accessible locally at http://localhost:8080.
 
