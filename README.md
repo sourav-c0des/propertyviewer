@@ -17,9 +17,8 @@ Postman
 IntellijIdea
 
 Installation
+
 Clone the repository:
-bash
-Copy code
 git clone https://github.com/sourav-c0des/propertyviewer.git
 cd propertyviewer
 
