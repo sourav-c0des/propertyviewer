@@ -7,7 +7,7 @@ to set up, run, interact with the API, and deploy the application using Docker.
 Based in the requirements, divided it into major tasks and used Trello as a ticketing tool to keep track
 ![Screenshot 2024-06-18 090709](https://github.com/sourav-c0des/propertyviewer/assets/32695091/273a4ecc-3425-4638-a226-ce0895ac7f1e)
 
-Tools/Technologies use
+Tools/Technologies used:
 Java 17
 SpringBoot
 JPA Hibernate
