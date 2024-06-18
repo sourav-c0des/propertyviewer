@@ -17,19 +17,21 @@ Clone the repository:
 bash
 Copy code
 git clone https://github.com/sourav-c0des/propertyviewer.git
-
 cd propertyviewer
+
 
 Run the main java file
 The API will be accessible locally at http://localhost:8080.
 
+
 Interacting with the API
 The Property Viewer application provides the following RESTful endpoints to manage properties:
 
-Add a Building:
 
+Add a Building:
 Endpoint: POST http://localhost:8080/propertyviewer/add
 Body: JSON object with building details (name, street, number, postal code, city, country, description)
+
 List Buildings:
 Endpoint: GET http://localhost:8080/propertyviewer/view
 
